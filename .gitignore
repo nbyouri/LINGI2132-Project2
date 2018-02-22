@@ -1,0 +1,9 @@
+*.class
+/.idea/
+pass
+fail
+out
+classes
+.DS_Store
+/.metadata/
+/.recommenders/
