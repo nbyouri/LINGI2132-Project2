@@ -169,6 +169,8 @@ TOKEN:
 | < TRUE: "true" >
 | < VOID: "void" >
 | < WHILE: "while" >
+| < DOUBLE: "double" >
+| < DO: "do" >
 }
 
 // Operators (these could be combined with the reserved words)
@@ -186,6 +188,7 @@ TOKEN:
 | < MINUS: "-" >
 | < PLUS_ASSIGN: "+=" >
 | < STAR: "*" >
+| < MOD_ASSIGN: "%=" >
 }
 
 // Separators (these could be combined with the reserved words)
@@ -215,6 +218,7 @@ TOKEN:
 TOKEN:
 {
   < INT_LITERAL: ("0" | <NON_ZERO_DIGIT> (<DIGIT>)*) >
+| < DOUBLE_LITERAL: (<DIGIT>)* ((<DOT>){1} (((<DIGIT>)+ (["e","E"])?) (["+","-"])? (<DIGIT>)+ | (<DIGIT>)+) (["d","D"])?)? >
 | < CHAR_LITERAL: "'" (<ESC> | ~["'","\\","\n","\r"]) "'" >
 | < STRING_LITERAL: "\"" (<ESC> | ~["\"","\\","\n","\r"])* "\"" >   
 | < #ESC: "\\" ["n","t","b","r","f","\\","'","\""] >
@@ -677,6 +681,12 @@ private JStatement statement(): {
         test = parExpression() 
         body = statement()
         { statement = new JWhileStatement( line, test, body ); } |
+                <DO> { line = token.beginLine; }
+                body = statement()
+                <WHILE>
+                test = parExpression()
+                <SEMI>
+                { statement = new JDoWhileStatement( line, body, test); } |
         <RETURN> { line = token.beginLine; }
         [ 
             expr = expression() 
@@ -1002,7 +1012,7 @@ private Type type(): {
  * Parse a basic type.
  * 
  * <pre>
- *   basicType ::= BOOLEAN | CHAR | INT
+ *   basicType ::= BOOLEAN | CHAR | INT | DOUBLE
  * </pre>
  * 
  * @return an instance of Type.
@@ -1015,7 +1025,8 @@ private Type basicType(): {
     try {
         <BOOLEAN> { type = Type.BOOLEAN; } |
         <CHAR> { type = Type.CHAR; } |
-        <INT> { type = Type.INT; }
+        <INT> { type = Type.INT; } |
+        <DOUBLE> { type = Type.DOUBLE; }
     } 
     catch ( ParseException e ) { 
         recoverFromError( new int[] { SEMI, EOF }, e ); 
@@ -1151,7 +1162,10 @@ private JExpression assignmentExpression(): {
             { lhs = new JAssignOp( line, lhs, rhs ); } |
             <PLUS_ASSIGN>
             rhs = assignmentExpression()
-            { lhs = new JPlusAssignOp( line, lhs, rhs ); }
+            { lhs = new JPlusAssignOp( line, lhs, rhs ); } |
+            <MOD_ASSIGN>
+            rhs = assignmentExpression()
+            { lhs = new JModAssignOp( line, lhs, rhs ); }
         ]
     } 
     catch ( ParseException e ) { 
@@ -1649,20 +1663,22 @@ private JNewArrayOp newArrayDeclarator( Type type ): {
  * Parse a literal.
  * 
  * <pre>
- *   literal ::= INT_LITERAL | CHAR_LITERAL | STRING_LITERAL
+ *   literal ::= INT_LITERAL | DOUBLE_LITERAL | CHAR_LITERAL | STRING_LITERAL
  *             | TRUE        | FALSE        | NULL
  * </pre>
- * 
+ *
  * @return an AST for a literal.
  */
 
 private JExpression literal(): {
     JExpression expr = null;
 }
-{       
+{
     try {
-        <INT_LITERAL> 
-        { expr = new JLiteralInt( token.beginLine, token.image ); } | 
+        <INT_LITERAL>
+        { expr = new JLiteralInt( token.beginLine, token.image ); } |
+        <DOUBLE_LITERAL>
+        { expr = new JLiteralDouble( token.beginLine, token.image); } |
         <CHAR_LITERAL> 
         { expr = new JLiteralChar( token.beginLine, token.image ); } |
         <STRING_LITERAL> 

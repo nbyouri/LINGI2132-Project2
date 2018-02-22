@@ -13,16 +13,16 @@ package jminusminus;
 enum TokenKind {
     EOF("<EOF>"), ABSTRACT("abstract"), BOOLEAN("boolean"), CHAR("char"), CLASS(
             "class"), ELSE("else"), EXTENDS("extends"), FALSE("false"), IF("if"), IMPORT(
-            "import"), INSTANCEOF("instanceof"), INT("int"), NEW("new"), NULL(
+            "import"), INSTANCEOF("instanceof"), INT("int"), DOUBLE("double"), NEW("new"), NULL(
             "null"), PACKAGE("package"), PRIVATE("private"), PROTECTED(
             "protected"), PUBLIC("public"), RETURN("return"), STATIC("static"), SUPER(
-            "super"), THIS("this"), TRUE("true"), VOID("void"), WHILE("while"), PLUS(
+            "super"), THIS("this"), TRUE("true"), VOID("void"), WHILE("while"), DO("do"), PLUS(
             "+"), ASSIGN("="), DEC("--"), EQUAL("=="), GT(">"), INC("++"), LAND(
-            "&&"), LE("<="), LNOT("!"), MINUS("-"), PLUS_ASSIGN("+="), STAR("*"), LPAREN(
+            "&&"), LE("<="), LNOT("!"), MINUS("-"), PLUS_ASSIGN("+="), MOD_ASSIGN("%="), STAR("*"), LPAREN(
             "("), RPAREN(")"), LCURLY("{"), RCURLY("}"), LBRACK("["), RBRACK(
             "]"), SEMI(";"), COMMA(","), DOT("."), IDENTIFIER("<IDENTIFIER>"), INT_LITERAL(
             "<INT_LITERAL>"), CHAR_LITERAL("<CHAR_LITERAL>"), STRING_LITERAL(
-            "<STRING_LITERAL>");
+            "<STRING_LITERAL>"), DOUBLE_LITERAL("<DOUBLE_LITERAL>"), EXPL("e"), EXPU("E"), DOUBLEL("d"), DOUBLEU("E");
 
     /** The token's string representation. */
     private String image;

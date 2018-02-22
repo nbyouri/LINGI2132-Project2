@@ -279,7 +279,7 @@ public class Parser {
      */
 
     private boolean seeBasicType() {
-        if (see(BOOLEAN) || see(CHAR) || see(INT)) {
+        if (see(BOOLEAN) || see(CHAR) || see(INT) || see(DOUBLE)) {
             return true;
         } else {
             return false;
@@ -302,7 +302,7 @@ public class Parser {
             return true;
         } else {
             scanner.recordPosition();
-            if (have(BOOLEAN) || have(CHAR) || have(INT)) {
+            if (have(BOOLEAN) || have(CHAR) || have(INT) || have(DOUBLE)) {
                 if (have(LBRACK) && see(RBRACK)) {
                     scanner.returnToPosition();
                     return true;
@@ -654,6 +654,17 @@ public class Parser {
             JExpression test = parExpression();
             JStatement statement = statement();
             return new JWhileStatement(line, test, statement);
+        } else if (have(DO)) {
+            JStatement statement = statement();
+            if (have(WHILE)) {
+                JExpression test = parExpression();
+                mustBe(SEMI);
+                return new JDoWhileStatement(line, statement, test);
+            } else {
+                reportParserError("Syntax error, insert \"while ( Expression ) ;\" to complete DoWhileStatement", scanner.token()
+                        .image());
+                return statement;
+            }
         } else if (have(RETURN)) {
             if (have(SEMI)) {
                 return new JReturnStatement(line, null);
@@ -889,7 +900,7 @@ public class Parser {
      * Parse a basic type.
      * 
      * <pre>
-     *   basicType ::= BOOLEAN | CHAR | INT
+     *   basicType ::= BOOLEAN | CHAR | INT | DOUBLE
      * </pre>
      * 
      * @return an instance of Type.
@@ -902,6 +913,8 @@ public class Parser {
             return Type.CHAR;
         } else if (have(INT)) {
             return Type.INT;
+        } else if (have(DOUBLE)) {
+            return Type.DOUBLE;
         } else {
             reportParserError("Type sought where %s found", scanner.token()
                     .image());
@@ -1003,6 +1016,8 @@ public class Parser {
             return new JAssignOp(line, lhs, assignmentExpression());
         } else if (have(PLUS_ASSIGN)) {
             return new JPlusAssignOp(line, lhs, assignmentExpression());
+        } else if (have(MOD_ASSIGN)) {
+            return new JModAssignOp(line, lhs, assignmentExpression());
         } else {
             return lhs;
         }
@@ -1388,12 +1403,12 @@ public class Parser {
 
     /**
      * Parse a literal.
-     * 
+     *
      * <pre>
      *   literal ::= INT_LITERAL | CHAR_LITERAL | STRING_LITERAL
      *             | TRUE        | FALSE        | NULL
      * </pre>
-     * 
+     *
      * @return an AST for a literal.
      */
 
@@ -1401,6 +1416,8 @@ public class Parser {
         int line = scanner.token().line();
         if (have(INT_LITERAL)) {
             return new JLiteralInt(line, scanner.previousToken().image());
+        } else if (have(DOUBLE_LITERAL)) {
+            return new JLiteralDouble(line, scanner.previousToken().image());
         } else if (have(CHAR_LITERAL)) {
             return new JLiteralChar(line, scanner.previousToken().image());
         } else if (have(STRING_LITERAL)) {

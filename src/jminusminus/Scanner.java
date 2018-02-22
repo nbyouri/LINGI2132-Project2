@@ -67,6 +67,7 @@ class Scanner {
         reserved.put(IMPORT.image(), IMPORT);
         reserved.put(INSTANCEOF.image(), INSTANCEOF);
         reserved.put(INT.image(), INT);
+        reserved.put(DOUBLE.image(), DOUBLE);
         reserved.put(NEW.image(), NEW);
         reserved.put(NULL.image(), NULL);
         reserved.put(PACKAGE.image(), PACKAGE);
@@ -80,6 +81,7 @@ class Scanner {
         reserved.put(TRUE.image(), TRUE);
         reserved.put(VOID.image(), VOID);
         reserved.put(WHILE.image(), WHILE);
+        reserved.put(DO.image(), DO);
 
         // Prime the pump.
         nextCh();
@@ -192,6 +194,15 @@ class Scanner {
                 reportScannerError("Operator < is not supported in j--.");
                 return getNextToken();
             }
+            case '%':
+                nextCh();
+                if (ch == '=') {
+                    nextCh();
+                    return new TokenInfo(MOD_ASSIGN, line);
+                } else {
+                    reportScannerError("Operator % is not supported in j--.");
+                    return getNextToken();
+                }
         case '\'':
             buffer = new StringBuffer();
             buffer.append('\'');
@@ -242,12 +253,70 @@ class Scanner {
             return new TokenInfo(STRING_LITERAL, buffer.toString(), line);
         case '.':
             nextCh();
+            if (isDigit(ch)) {
+                buffer = new StringBuffer();
+                buffer.append(".");
+                buffer.append(ch);
+                nextCh();
+                while (isDigit(ch)) {
+                    buffer.append(ch);
+                    nextCh();
+                }
+                if (ch == 'e' || ch == 'E') {
+                    buffer.append(ch);
+                    nextCh();
+                    if (ch == '+' || ch == '-') {
+                        buffer.append(ch);
+                        nextCh();
+                    }
+                    while (isDigit(ch)) {
+                        buffer.append(ch);
+                        nextCh();
+                    }
+                }
+                if (ch == 'd' || ch == 'D') {
+                    buffer.append(ch);
+                    nextCh();
+                }
+                return new TokenInfo(DOUBLE_LITERAL, buffer.toString(), line);
+            }
             return new TokenInfo(DOT, line);
         case EOFCH:
             return new TokenInfo(EOF, line);
         case '0':
             // Handle only simple decimal integers for now.
+            buffer = new StringBuffer();
+            buffer.append(ch);
             nextCh();
+            while (ch == '0') {
+                buffer.append(ch);
+                nextCh();
+            }
+            if (ch == '.') {
+                buffer.append(".");
+                nextCh();
+                while (isDigit(ch)) {
+                    buffer.append(ch);
+                    nextCh();
+                }
+                if (ch == 'e' || ch == 'E') {
+                    buffer.append(ch);
+                    nextCh();
+                    if (ch == '+' || ch == '-') {
+                        buffer.append(ch);
+                        nextCh();
+                    }
+                    while (isDigit(ch)) {
+                        buffer.append(ch);
+                        nextCh();
+                    }
+                }
+                if (ch == 'd' || ch == 'D') {
+                    buffer.append(ch);
+                    nextCh();
+                }
+                return new TokenInfo(DOUBLE_LITERAL, buffer.toString(), line);
+            }
             return new TokenInfo(INT_LITERAL, "0", line);
         case '1':
         case '2':
@@ -262,6 +331,31 @@ class Scanner {
             while (isDigit(ch)) {
                 buffer.append(ch);
                 nextCh();
+            }
+            if (ch == '.') {
+                buffer.append(ch);
+                nextCh();
+                while (isDigit(ch)) {
+                    buffer.append(ch);
+                    nextCh();
+                }
+                if (ch == 'e' || ch == 'E') {
+                    buffer.append(ch);
+                    nextCh();
+                    if (ch == '+' || ch == '-') {
+                        buffer.append(ch);
+                        nextCh();
+                    }
+                    while (isDigit(ch)) {
+                        buffer.append(ch);
+                        nextCh();
+                    }
+                }
+                if (ch == 'd' || ch == 'D') {
+                    buffer.append(ch);
+                    nextCh();
+                }
+                return new TokenInfo(DOUBLE_LITERAL, buffer.toString(), line);
             }
             return new TokenInfo(INT_LITERAL, buffer.toString(), line);
         default:
